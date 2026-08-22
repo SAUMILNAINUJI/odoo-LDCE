@@ -13,6 +13,7 @@ import ActivitySearch from './pages/ActivitySearch'
 import CalendarView from './pages/CalendarView'
 import Community from './pages/Community'
 import Profile from './pages/Profile'
+import SavedPlaces from './pages/SavedPlaces'
 import AdminDashboard from './pages/AdminDashboard'
 import PublicItinerary from './pages/PublicItinerary'
 import ProtectedRoute from './components/common/ProtectedRoute'
@@ -48,6 +49,7 @@ export default function App() {
       <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
       <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/saved" element={<ProtectedRoute><SavedPlaces /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
 
       <Route path="/" element={<Navigate to={user ? (user.role === 'admin' ? '/admin' : '/dashboard') : '/login'} replace />} />

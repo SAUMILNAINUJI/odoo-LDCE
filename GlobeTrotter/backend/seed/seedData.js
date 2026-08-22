@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { sequelize } = require('../config/db');
-const { User, City, Activity } = require('../models');
+const { User, City, Activity, PointOfInterest, Favorite, Review } = require('../models');
+const ensureSchema = require('../utils/ensureSchema');
 require('dotenv').config();
 
 const cities = [
@@ -37,6 +38,7 @@ const seed = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
+    await ensureSchema();
 
     // Admin user
     const adminExists = await User.findOne({ where: { email: 'admin@globetrotter.com' } });
@@ -62,6 +64,16 @@ const seed = async () => {
 
     for (const c of cities) {
       const [city] = await City.findOrCreate({ where: { name: c.name, country: c.country }, defaults: c });
+      const metadata = {
+        tags: c.name === 'Jaipur' || c.name === 'Rome' ? 'historical,cultural,family,budget' : c.name === 'Goa' || c.name === 'Bali' ? 'beach,couple,nature,food' : c.name === 'Rishikesh' || c.name === 'Manali' ? 'adventure,nature,spiritual,family' : c.name === 'Bangkok' || c.name === 'Tokyo' ? 'food,temple,cultural,adventure' : 'cultural,food,popular',
+        rating: Math.min(4.9, 3.8 + (c.popularity / 100)),
+        family_friendly: ['Jaipur', 'Manali', 'Singapore', 'Bangkok', 'New Delhi'].includes(c.name),
+        couple_friendly: ['Goa', 'Bali', 'Paris', 'Udaipur', 'Rome'].includes(c.name),
+        child_friendly: ['Singapore', 'Paris', 'Tokyo', 'Manali', 'Jaipur'].includes(c.name),
+        recommended_duration: ['Paris', 'Tokyo', 'Rome', 'New York'].includes(c.name) ? 5 : 3
+        ,travel_tip: c.name === 'Rishikesh' ? 'Carry water and comfortable walking shoes for riverside and temple visits.' : c.name === 'Manali' ? 'Pack warm layers and check mountain road conditions before day trips.' : 'Start sightseeing early and carry comfortable walking shoes.'
+      };
+      await city.update(metadata);
       const existingActivities = await Activity.count({ where: { city_id: city.id } });
       if (existingActivities === 0) {
         for (const t of activityTemplates) {
@@ -76,6 +88,20 @@ const seed = async () => {
           });
         }
       }
+      if (await PointOfInterest.count({ where: { city_id: city.id } }) === 0) {
+        await PointOfInterest.bulkCreate([
+          { city_id: city.id, type: 'hotel', name: `${c.name} Garden Stay`, description: 'Seeded demo accommodation record for application testing.', price_tier: c.cost_index > 60 ? 'Premium' : 'Budget', rating: 4.3, distance_km: 2.4, amenities: 'Breakfast, Wi-Fi', image_url: c.image_url },
+          { city_id: city.id, type: 'restaurant', name: `${c.name} Local Table`, description: 'Seeded demo restaurant record featuring local cuisine.', price_tier: c.cost_index > 60 ? 'Premium' : 'Moderate', rating: 4.4, distance_km: 1.8, amenities: 'Local food, Vegetarian options', image_url: c.image_url },
+          { city_id: city.id, type: 'transport', name: `${c.name} Central Transfer`, description: 'Seeded informational transport option. Availability is not live.', price_tier: 'Information', rating: 4.0, distance_km: 5.2, amenities: 'Airport, Railway, Taxi', image_url: c.image_url }
+        ]);
+      }
+    }
+
+    const demoUser = await User.findOne({ where: { email: 'demo@globetrotter.com' } });
+    const featuredCity = await City.findOne({ where: { name: 'Jaipur' } });
+    if (demoUser && featuredCity) {
+      await Favorite.findOrCreate({ where: { user_id: demoUser.id, entity_type: 'city', entity_id: featuredCity.id } });
+      await Review.findOrCreate({ where: { user_id: demoUser.id, entity_type: 'city', entity_id: featuredCity.id }, defaults: { rating: 5, comment: 'A seeded demo review for the destination detail flow.' } });
     }
 
     console.log('Seed data inserted successfully!');

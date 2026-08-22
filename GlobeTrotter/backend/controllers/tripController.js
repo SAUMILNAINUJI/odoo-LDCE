@@ -11,20 +11,30 @@ const fullTripInclude = [
   }
 ];
 
+const todayDateOnly = () => new Date().toISOString().slice(0, 10);
+
+const overlappingTrip = async (userId, startDate, endDate, excludeId = null) => {
+  const trips = await Trip.findAll({ where: { user_id: userId }, attributes: ['id', 'name', 'start_date', 'end_date'] });
+  return trips.find(trip => trip.id !== Number(excludeId) && trip.start_date <= endDate && trip.end_date >= startDate);
+};
+
 // @desc Create a new trip
 // @route POST /api/trips
 const createTrip = async (req, res) => {
   try {
-    const { name, description, start_date, end_date, cover_photo, is_public } = req.body;
+    const { name, description, start_date, end_date, cover_photo, is_public, budget } = req.body;
     if (!name || String(name).trim() === '' || !start_date || !end_date) {
       return res.status(400).json({ message: 'Trip name, start date, and end date are required' });
     }
     if (new Date(start_date) > new Date(end_date)) {
       return res.status(400).json({ message: 'End date must be greater than or equal to start date' });
     }
+    if (start_date < todayDateOnly()) return res.status(400).json({ message: 'Start date cannot be in the past' });
+    const conflict = await overlappingTrip(req.user.id, start_date, end_date);
+    if (conflict) return res.status(409).json({ message: `Dates overlap with your trip "${conflict.name}" (${conflict.start_date} to ${conflict.end_date})` });
     const trip = await Trip.create({
       user_id: req.user.id, name: String(name).trim(), description, start_date, end_date,
-      cover_photo, is_public: !!is_public, share_token: uuidv4()
+      cover_photo, budget: Number(budget) || 0, is_public: !!is_public, share_token: uuidv4()
     });
     res.status(201).json(trip);
   } catch (err) {
@@ -86,8 +96,11 @@ const updateTrip = async (req, res) => {
     if (sDate && eDate && new Date(sDate) > new Date(eDate)) {
       return res.status(400).json({ message: 'End date must be greater than or equal to start date' });
     }
+    if (sDate < todayDateOnly()) return res.status(400).json({ message: 'Start date cannot be in the past' });
+    const conflict = await overlappingTrip(req.user.id, sDate, eDate, trip.id);
+    if (conflict) return res.status(409).json({ message: `Dates overlap with your trip "${conflict.name}" (${conflict.start_date} to ${conflict.end_date})` });
 
-    const fields = ['name', 'description', 'start_date', 'end_date', 'cover_photo', 'status', 'is_public'];
+    const fields = ['name', 'description', 'start_date', 'end_date', 'cover_photo', 'budget', 'status', 'is_public'];
     fields.forEach(f => { if (req.body[f] !== undefined) trip[f] = req.body[f]; });
     await trip.save();
     res.json(trip);
@@ -253,7 +266,9 @@ const getTripBudget = async (req, res) => {
     res.json({
       total_activity_cost: total,
       stops_budget_allocated: stopsBudget,
+      planned_budget: parseFloat(trip.budget || 0),
       grand_total: total + stopsBudget,
+      remaining_budget: parseFloat(trip.budget || 0) - (total + stopsBudget),
       average_per_day: (total + stopsBudget) / days,
       breakdown_by_category: breakdown,
       trip_days: days

@@ -34,6 +34,7 @@ export default function BudgetBreakdown() {
         <StatCard icon={Wallet} label="Section Budgets" value={`$${Math.round(budget.stops_budget_allocated)}`} accent="amber" />
         <StatCard icon={Calendar} label="Avg / Day" value={`$${Math.round(budget.average_per_day)}`} accent="coral" />
       </div>
+      {budget.planned_budget > 0 && <div className={`card mb-6 p-4 border ${budget.remaining_budget < 0 ? 'border-rose-200 bg-rose-50' : 'border-emerald-200 bg-emerald-50'}`}><p className={`text-sm font-semibold ${budget.remaining_budget < 0 ? 'text-rose-700' : 'text-emerald-700'}`}>{budget.remaining_budget < 0 ? `Over budget by $${Math.round(Math.abs(budget.remaining_budget))}` : `$${Math.round(budget.remaining_budget)} remaining from your planned budget`}</p><p className="mt-1 text-xs text-slate-500">Planned budget: ${Math.round(budget.planned_budget)}</p></div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card p-6">
