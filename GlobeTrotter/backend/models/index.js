@@ -6,6 +6,9 @@ const Trip = require('./Trip');
 const Stop = require('./Stop');
 const StopActivity = require('./StopActivity');
 const CommunityPost = require('./CommunityPost');
+const Favorite = require('./Favorite');
+const Review = require('./Review');
+const PointOfInterest = require('./PointOfInterest');
 
 // Associations
 User.hasMany(Trip, { foreignKey: 'user_id', onDelete: 'CASCADE' });
@@ -32,4 +35,11 @@ CommunityPost.belongsTo(User, { foreignKey: 'user_id' });
 Trip.hasMany(CommunityPost, { foreignKey: 'trip_id' });
 CommunityPost.belongsTo(Trip, { foreignKey: 'trip_id' });
 
-module.exports = { sequelize, User, City, Activity, Trip, Stop, StopActivity, CommunityPost };
+User.hasMany(Favorite, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+Favorite.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(Review, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+Review.belongsTo(User, { foreignKey: 'user_id' });
+City.hasMany(PointOfInterest, { foreignKey: 'city_id', onDelete: 'CASCADE' });
+PointOfInterest.belongsTo(City, { foreignKey: 'city_id' });
+
+module.exports = { sequelize, User, City, Activity, Trip, Stop, StopActivity, CommunityPost, Favorite, Review, PointOfInterest };

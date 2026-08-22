@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { sequelize } = require('../config/db');
-const { User, City, Activity } = require('../models');
+const { User, City, Activity, PointOfInterest, Favorite, Review } = require('../models');
+const ensureSchema = require('../utils/ensureSchema');
 require('dotenv').config();
 
 const cities = [
@@ -11,7 +12,15 @@ const cities = [
   { name: 'Rome', country: 'Italy', cost_index: 65, popularity: 89, description: 'Ancient history around every corner.', image_url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600' },
   { name: 'Dubai', country: 'UAE', cost_index: 80, popularity: 84, description: 'Futuristic skyline and luxury experiences.', image_url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600' },
   { name: 'Barcelona', country: 'Spain', cost_index: 60, popularity: 86, description: 'Gaudi architecture and Mediterranean beaches.', image_url: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=600' },
-  { name: 'Bangkok', country: 'Thailand', cost_index: 35, popularity: 83, description: 'Vibrant street life and temples.', image_url: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600' }
+  { name: 'Bangkok', country: 'Thailand', cost_index: 35, popularity: 83, description: 'Vibrant street life and temples.', image_url: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600' },
+  { name: 'Jaipur', country: 'India', cost_index: 32, popularity: 87, description: 'Historic forts, palaces, and colorful bazaars.', image_url: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600' },
+  { name: 'Goa', country: 'India', cost_index: 38, popularity: 82, description: 'Coastal beaches, Portuguese heritage, and relaxed food culture.', image_url: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600' },
+  { name: 'Manali', country: 'India', cost_index: 30, popularity: 78, description: 'Mountain valleys, hiking trails, and family-friendly escapes.', image_url: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=600' },
+  { name: 'Rishikesh', country: 'India', cost_index: 28, popularity: 76, description: 'River landscapes, yoga, temples, and outdoor adventures.', image_url: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=600' },
+  { name: 'Udaipur', country: 'India', cost_index: 35, popularity: 80, description: 'Lakeside palaces, historic streets, and quiet cultural experiences.', image_url: 'https://images.unsplash.com/photo-1582972236019-ea9e2f7a2c6c?w=600' },
+  { name: 'Kerala', country: 'India', cost_index: 42, popularity: 85, description: 'Backwaters, tropical landscapes, and regional cuisine.', image_url: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600' },
+  { name: 'New Delhi', country: 'India', cost_index: 36, popularity: 84, description: 'National monuments, museums, markets, and diverse food traditions.', image_url: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600' },
+  { name: 'Singapore', country: 'Singapore', cost_index: 76, popularity: 88, description: 'Efficient urban travel, gardens, waterfronts, and hawker cuisine.', image_url: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600' }
 ];
 
 const activityTemplates = [
@@ -29,6 +38,7 @@ const seed = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
+    await ensureSchema();
 
     // Admin user
     const adminExists = await User.findOne({ where: { email: 'admin@globetrotter.com' } });
@@ -54,6 +64,16 @@ const seed = async () => {
 
     for (const c of cities) {
       const [city] = await City.findOrCreate({ where: { name: c.name, country: c.country }, defaults: c });
+      const metadata = {
+        tags: c.name === 'Jaipur' || c.name === 'Rome' ? 'historical,cultural,family,budget' : c.name === 'Goa' || c.name === 'Bali' ? 'beach,couple,nature,food' : c.name === 'Rishikesh' || c.name === 'Manali' ? 'adventure,nature,spiritual,family' : c.name === 'Bangkok' || c.name === 'Tokyo' ? 'food,temple,cultural,adventure' : 'cultural,food,popular',
+        rating: Math.min(4.9, 3.8 + (c.popularity / 100)),
+        family_friendly: ['Jaipur', 'Manali', 'Singapore', 'Bangkok', 'New Delhi'].includes(c.name),
+        couple_friendly: ['Goa', 'Bali', 'Paris', 'Udaipur', 'Rome'].includes(c.name),
+        child_friendly: ['Singapore', 'Paris', 'Tokyo', 'Manali', 'Jaipur'].includes(c.name),
+        recommended_duration: ['Paris', 'Tokyo', 'Rome', 'New York'].includes(c.name) ? 5 : 3
+        ,travel_tip: c.name === 'Rishikesh' ? 'Carry water and comfortable walking shoes for riverside and temple visits.' : c.name === 'Manali' ? 'Pack warm layers and check mountain road conditions before day trips.' : 'Start sightseeing early and carry comfortable walking shoes.'
+      };
+      await city.update(metadata);
       const existingActivities = await Activity.count({ where: { city_id: city.id } });
       if (existingActivities === 0) {
         for (const t of activityTemplates) {
@@ -68,6 +88,20 @@ const seed = async () => {
           });
         }
       }
+      if (await PointOfInterest.count({ where: { city_id: city.id } }) === 0) {
+        await PointOfInterest.bulkCreate([
+          { city_id: city.id, type: 'hotel', name: `${c.name} Garden Stay`, description: 'Seeded demo accommodation record for application testing.', price_tier: c.cost_index > 60 ? 'Premium' : 'Budget', rating: 4.3, distance_km: 2.4, amenities: 'Breakfast, Wi-Fi', image_url: c.image_url },
+          { city_id: city.id, type: 'restaurant', name: `${c.name} Local Table`, description: 'Seeded demo restaurant record featuring local cuisine.', price_tier: c.cost_index > 60 ? 'Premium' : 'Moderate', rating: 4.4, distance_km: 1.8, amenities: 'Local food, Vegetarian options', image_url: c.image_url },
+          { city_id: city.id, type: 'transport', name: `${c.name} Central Transfer`, description: 'Seeded informational transport option. Availability is not live.', price_tier: 'Information', rating: 4.0, distance_km: 5.2, amenities: 'Airport, Railway, Taxi', image_url: c.image_url }
+        ]);
+      }
+    }
+
+    const demoUser = await User.findOne({ where: { email: 'demo@globetrotter.com' } });
+    const featuredCity = await City.findOne({ where: { name: 'Jaipur' } });
+    if (demoUser && featuredCity) {
+      await Favorite.findOrCreate({ where: { user_id: demoUser.id, entity_type: 'city', entity_id: featuredCity.id } });
+      await Review.findOrCreate({ where: { user_id: demoUser.id, entity_type: 'city', entity_id: featuredCity.id }, defaults: { rating: 5, comment: 'A seeded demo review for the destination detail flow.' } });
     }
 
     console.log('Seed data inserted successfully!');

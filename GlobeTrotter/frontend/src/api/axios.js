@@ -22,6 +22,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('gt_user')
+      window.dispatchEvent(new Event('gt:session-expired'))
     }
     return Promise.reject(error)
   }

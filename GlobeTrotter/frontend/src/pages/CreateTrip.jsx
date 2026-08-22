@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import CityCard from '../components/common/CityCard'
@@ -7,13 +7,20 @@ import api from '../api/axios'
 
 export default function CreateTrip() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', description: '', start_date: '', end_date: '', cover_photo: '' })
+  const [params] = useSearchParams()
+  const [form, setForm] = useState({ name: '', description: '', start_date: '', end_date: '', cover_photo: '', budget: '' })
   const [suggestedCities, setSuggestedCities] = useState([])
+  const [existingTrips, setExistingTrips] = useState([])
+  const [destinationId, setDestinationId] = useState(params.get('city_id') || '')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    api.get('/cities').then(res => setSuggestedCities(res.data.slice(0, 6))).catch(() => { })
+    Promise.all([api.get('/cities'), api.get('/trips')]).then(([citiesResponse, tripsResponse]) => {
+      setSuggestedCities(citiesResponse.data.slice(0, 6))
+      const grouped = tripsResponse.data || {}
+      setExistingTrips([...(grouped.ongoing || []), ...(grouped.upcoming || []), ...(grouped.completed || [])])
+    }).catch(() => {})
   }, [])
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value })
@@ -21,15 +28,26 @@ export default function CreateTrip() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (new Date(form.end_date) < new Date(form.start_date)) {
-      setError('End date cannot be earlier than start date')
+
+    if (new Date(form.start_date) > new Date(form.end_date)) {
+      setError('End date must be greater than or equal to start date')
+      return
+    }
+    const today = new Date().toISOString().slice(0, 10)
+    if (form.start_date < today) {
+      setError('Start date cannot be in the past')
+      return
+    }
+    const conflict = existingTrips.find(trip => trip.start_date <= form.end_date && trip.end_date >= form.start_date)
+    if (conflict) {
+      setError(`These dates overlap with "${conflict.name}" (${conflict.start_date} to ${conflict.end_date})`)
       return
     }
 
     setLoading(true)
     try {
       const { data } = await api.post('/trips', form)
-      navigate(`/trips/${data.id}/build`)
+      navigate(`/trips/${data.id}/build${destinationId ? `?city_id=${destinationId}` : ''}`)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not create trip')
     } finally {
@@ -47,15 +65,26 @@ export default function CreateTrip() {
               <label className="label">Trip Name</label>
               <input required className="input-field" placeholder="e.g. Summer Europe Getaway" value={form.name} onChange={update('name')} />
             </div>
+            <div>
+              <label className="label">Starting Destination</label>
+              <select className="input-field" value={destinationId} onChange={(e) => setDestinationId(e.target.value)}>
+                <option value="">Choose a destination in the itinerary builder</option>
+                {suggestedCities.map(city => <option key={city.id} value={city.id}>{city.name}, {city.country}</option>)}
+              </select>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Start Date</label>
-                <input type="date" required className="input-field" value={form.start_date} onChange={update('start_date')} />
+                <input type="date" min={new Date().toISOString().slice(0, 10)} required className="input-field" value={form.start_date} onChange={update('start_date')} />
               </div>
               <div>
                 <label className="label">End Date</label>
                 <input type="date" required className="input-field" value={form.end_date} onChange={update('end_date')} min={form.start_date} />
               </div>
+            </div>
+            <div>
+              <label className="label">Total Budget</label>
+              <input type="number" min="0" step="0.01" className="input-field" placeholder="e.g. 40000" value={form.budget} onChange={update('budget')} />
             </div>
             <div>
               <label className="label">Cover Photo URL (optional)</label>

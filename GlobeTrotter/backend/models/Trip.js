@@ -8,6 +8,7 @@ const Trip = sequelize.define('Trip', {
   description: { type: DataTypes.TEXT },
   start_date: { type: DataTypes.DATEONLY },
   end_date: { type: DataTypes.DATEONLY },
+  budget: { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
   cover_photo: { type: DataTypes.STRING(500) },
   status: { type: DataTypes.ENUM('upcoming', 'ongoing', 'completed'), defaultValue: 'upcoming' },
   is_public: { type: DataTypes.BOOLEAN, defaultValue: false },

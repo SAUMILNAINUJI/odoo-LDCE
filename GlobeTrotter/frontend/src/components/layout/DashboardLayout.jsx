@@ -12,7 +12,7 @@ export default function DashboardLayout({ children, title, subtitle }) {
       <Sidebar isOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
 
       {/* Main Content Viewport */}
-      <div className="flex-1 md:pl-72 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-24 md:pb-8">
+      <div className="flex-1 w-full md:ml-60 p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto pb-24 md:pb-8">
         <Navbar title={title} subtitle={subtitle} onOpenMobileSidebar={() => setMobileSidebarOpen(true)} />
         <main className="animate-fadeIn">
           {children}

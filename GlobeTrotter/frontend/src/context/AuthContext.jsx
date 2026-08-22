@@ -1,18 +1,36 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import api from '../api/axios'
 
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try {
-      const stored = localStorage.getItem('gt_user')
-      return stored ? JSON.parse(stored) : null
-    } catch (e) {
-      localStorage.removeItem('gt_user')
-      return null
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('gt_user') || 'null')
+        if (!stored?.token) return
+        const { data } = await api.get('/users/profile')
+        const session = { ...data, token: stored.token }
+        localStorage.setItem('gt_user', JSON.stringify(session))
+        setUser(session)
+      } catch {
+        localStorage.removeItem('gt_user')
+        setUser(null)
+      } finally {
+        setAuthLoading(false)
+      }
     }
-  })
+    const expireSession = () => {
+      localStorage.removeItem('gt_user')
+      setUser(null)
+    }
+    window.addEventListener('gt:session-expired', expireSession)
+    restoreSession()
+    return () => window.removeEventListener('gt:session-expired', expireSession)
+  }, [])
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password })
@@ -40,7 +58,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, authLoading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

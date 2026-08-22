@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, User, MapPin, Compass, Users, Shield, LogIn, UserPlus, X, Globe2
+  LayoutDashboard, User, MapPin, Compass, Users, Heart, X, Globe2
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -14,15 +14,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { label: 'My Trips', path: '/trips', icon: Compass },
     { label: 'City Search', path: '/cities', icon: MapPin },
     { label: 'Community', path: '/community', icon: Users },
-  ]
-
-  if (user?.role === 'admin') {
-    mainLinks.push({ label: 'Admin Control', path: '/admin', icon: Shield })
-  }
-
-  const authLinks = [
-    { label: 'Sign In', path: '/login', icon: LogIn },
-    { label: 'Sign Up', path: '/register', icon: UserPlus }
+    { label: 'Saved Places', path: '/saved', icon: Heart },
   ]
 
   const SidebarContent = (
@@ -50,7 +42,9 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="space-y-1 mb-8">
           {mainLinks.map((item) => {
             const Icon = item.icon
-            const isActive = location.pathname === item.path
+            const isActive = item.path === '/dashboard'
+              ? location.pathname === item.path
+              : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
             return (
               <Link
                 key={item.path}
@@ -69,33 +63,6 @@ export default function Sidebar({ isOpen, onClose }) {
           })}
         </div>
 
-        {/* Auth Pages Section (Matching Screenshots) */}
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-4 mb-3">
-            AUTH PAGES
-          </p>
-          <div className="space-y-1">
-            {authLinks.map((item) => {
-              const Icon = item.icon
-              const isActive = location.pathname === item.path
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all ${
-                    isActive
-                      ? 'bg-zinc-800 text-white shadow-md font-bold'
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-900/60'
-                  }`}
-                >
-                  <Icon className="w-4 h-4 text-zinc-400" />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
       </div>
 
       {/* User Footer Indicator */}
@@ -120,7 +87,7 @@ export default function Sidebar({ isOpen, onClose }) {
   return (
     <>
       {/* Desktop Sidebar (Fixed Left Floating Panel) */}
-      <aside className="hidden md:block w-64 fixed left-4 top-4 bottom-4 z-40">
+      <aside className="hidden md:block w-56 fixed left-4 top-4 bottom-4 z-40">
         {SidebarContent}
       </aside>
 
