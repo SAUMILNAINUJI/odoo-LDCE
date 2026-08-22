@@ -13,7 +13,7 @@ export default function CreateTrip() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    api.get('/cities').then(res => setSuggestedCities(res.data.slice(0, 6))).catch(() => {})
+    api.get('/cities').then(res => setSuggestedCities(res.data.slice(0, 6))).catch(() => { })
   }, [])
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value })
@@ -21,6 +21,11 @@ export default function CreateTrip() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    if (new Date(form.end_date) < new Date(form.start_date)) {
+      setError('End date cannot be earlier than start date')
+      return
+    }
+
     setLoading(true)
     try {
       const { data } = await api.post('/trips', form)
@@ -49,7 +54,7 @@ export default function CreateTrip() {
               </div>
               <div>
                 <label className="label">End Date</label>
-                <input type="date" required className="input-field" value={form.end_date} onChange={update('end_date')} />
+                <input type="date" required className="input-field" value={form.end_date} onChange={update('end_date')} min={form.start_date} />
               </div>
             </div>
             <div>
