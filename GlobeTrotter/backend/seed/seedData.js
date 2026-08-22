@@ -11,7 +11,15 @@ const cities = [
   { name: 'Rome', country: 'Italy', cost_index: 65, popularity: 89, description: 'Ancient history around every corner.', image_url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600' },
   { name: 'Dubai', country: 'UAE', cost_index: 80, popularity: 84, description: 'Futuristic skyline and luxury experiences.', image_url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600' },
   { name: 'Barcelona', country: 'Spain', cost_index: 60, popularity: 86, description: 'Gaudi architecture and Mediterranean beaches.', image_url: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=600' },
-  { name: 'Bangkok', country: 'Thailand', cost_index: 35, popularity: 83, description: 'Vibrant street life and temples.', image_url: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600' }
+  { name: 'Bangkok', country: 'Thailand', cost_index: 35, popularity: 83, description: 'Vibrant street life and temples.', image_url: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600' },
+  { name: 'Jaipur', country: 'India', cost_index: 32, popularity: 87, description: 'Historic forts, palaces, and colorful bazaars.', image_url: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600' },
+  { name: 'Goa', country: 'India', cost_index: 38, popularity: 82, description: 'Coastal beaches, Portuguese heritage, and relaxed food culture.', image_url: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600' },
+  { name: 'Manali', country: 'India', cost_index: 30, popularity: 78, description: 'Mountain valleys, hiking trails, and family-friendly escapes.', image_url: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=600' },
+  { name: 'Rishikesh', country: 'India', cost_index: 28, popularity: 76, description: 'River landscapes, yoga, temples, and outdoor adventures.', image_url: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=600' },
+  { name: 'Udaipur', country: 'India', cost_index: 35, popularity: 80, description: 'Lakeside palaces, historic streets, and quiet cultural experiences.', image_url: 'https://images.unsplash.com/photo-1582972236019-ea9e2f7a2c6c?w=600' },
+  { name: 'Kerala', country: 'India', cost_index: 42, popularity: 85, description: 'Backwaters, tropical landscapes, and regional cuisine.', image_url: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600' },
+  { name: 'New Delhi', country: 'India', cost_index: 36, popularity: 84, description: 'National monuments, museums, markets, and diverse food traditions.', image_url: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600' },
+  { name: 'Singapore', country: 'Singapore', cost_index: 76, popularity: 88, description: 'Efficient urban travel, gardens, waterfronts, and hawker cuisine.', image_url: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600' }
 ];
 
 const activityTemplates = [

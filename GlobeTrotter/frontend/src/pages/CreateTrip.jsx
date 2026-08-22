@@ -21,6 +21,12 @@ export default function CreateTrip() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (new Date(form.start_date) > new Date(form.end_date)) {
+      setError('End date must be greater than or equal to start date')
+      return
+    }
+
     setLoading(true)
     try {
       const { data } = await api.post('/trips', form)

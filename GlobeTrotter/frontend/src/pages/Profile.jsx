@@ -1,11 +1,10 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Pencil, Trash2, Eye, MapPin, Mail, Phone, Home, MessageSquare, Settings as SettingsIcon, CheckCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import CameraCapture from '../components/common/CameraCapture'
-import { getCountries, getStates, getCities } from '../data/locationData'
 
 export default function Profile() {
   const { user, updateUser, logout } = useAuth()
@@ -14,6 +13,7 @@ export default function Profile() {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ ...user })
   const [trips, setTrips] = useState({ upcoming: [], completed: [] })
+  const [locationCities, setLocationCities] = useState([])
   const [msg, setMsg] = useState('')
 
   // Toggles state matching Screenshot 2
@@ -25,10 +25,8 @@ export default function Profile() {
     monthlyDigest: false
   })
 
-  // Dynamic location options
-  const countries = useMemo(() => getCountries(), [])
-  const availableStates = useMemo(() => getStates(form.country), [form.country])
-  const availableCities = useMemo(() => getCities(form.country, form.state), [form.country, form.state])
+  const countries = [...new Set(locationCities.map(city => city.country).filter(Boolean))]
+  const availableCities = locationCities.filter(city => city.country === form.country).map(city => city.name)
 
   useEffect(() => {
     api.get('/trips').then(res => {
@@ -36,6 +34,10 @@ export default function Profile() {
         setTrips(res.data)
       }
     }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    api.get('/cities').then(res => setLocationCities(Array.isArray(res.data) ? res.data : [])).catch(() => setLocationCities([]))
   }, [])
 
   const toggleSetting = (key) => () => {
@@ -76,14 +78,6 @@ export default function Profile() {
     logout()
     navigate('/login')
   }
-
-  // Mock conversation list (Matching Image 2)
-  const conversations = [
-    { name: 'Sophie B.', message: 'Hi! I need more information about Paris...', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100' },
-    { name: 'Alexander', message: 'Awesome work, can you share the Tokyo itinerary?', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
-    { name: 'Ivanna', message: 'About files I can send you the budget sheet...', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' },
-    { name: 'Peterson', message: 'Have a great afternoon in Barcelona!', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100' }
-  ]
 
   return (
     <DashboardLayout title="Profile" subtitle="Material Tailwind style profile details and settings">
@@ -241,7 +235,7 @@ export default function Profile() {
 
                     <div className="flex items-center gap-2 text-slate-700">
                       <strong className="text-slate-900 font-bold min-w-20">Location:</strong>
-                      <span>{[user?.city, user?.state, user?.country].filter(Boolean).join(', ') || 'Ahmedabad, India'}</span>
+                      <span>{[user?.city, user?.state, user?.country].filter(Boolean).join(', ') || 'Not provided'}</span>
                     </div>
                   </div>
                 </>
@@ -281,23 +275,9 @@ export default function Profile() {
               <h3 className="font-display font-bold text-slate-900 text-sm tracking-tight">Conversations</h3>
               
               <div className="space-y-3">
-                {conversations.map((c, i) => (
-                  <div key={i} className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200">
-                    <div className="flex items-center gap-3">
-                      <img src={c.avatar} alt={c.name} className="w-10 h-10 rounded-xl object-cover shadow-sm" />
-                      <div>
-                        <p className="text-xs font-bold text-slate-900">{c.name}</p>
-                        <p className="text-[11px] text-slate-500 truncate max-w-[140px] sm:max-w-[180px]">{c.message}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => alert(`Replying to ${c.name}`)}
-                      className="text-[10px] font-bold uppercase tracking-wider text-slate-900 hover:underline px-2 py-1"
-                    >
-                      REPLY
-                    </button>
-                  </div>
-                ))}
+                <p className="text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl p-4">
+                  No conversations available yet.
+                </p>
               </div>
             </div>
 

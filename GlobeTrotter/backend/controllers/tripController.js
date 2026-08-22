@@ -16,11 +16,14 @@ const fullTripInclude = [
 const createTrip = async (req, res) => {
   try {
     const { name, description, start_date, end_date, cover_photo, is_public } = req.body;
-    if (!name || !start_date || !end_date) {
-      return res.status(400).json({ message: 'Name, start date and end date are required' });
+    if (!name || String(name).trim() === '' || !start_date || !end_date) {
+      return res.status(400).json({ message: 'Trip name, start date, and end date are required' });
+    }
+    if (new Date(start_date) > new Date(end_date)) {
+      return res.status(400).json({ message: 'End date must be greater than or equal to start date' });
     }
     const trip = await Trip.create({
-      user_id: req.user.id, name, description, start_date, end_date,
+      user_id: req.user.id, name: String(name).trim(), description, start_date, end_date,
       cover_photo, is_public: !!is_public, share_token: uuidv4()
     });
     res.status(201).json(trip);
@@ -74,6 +77,16 @@ const updateTrip = async (req, res) => {
   try {
     const trip = await Trip.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!trip) return res.status(404).json({ message: 'Trip not found' });
+    const { name, start_date, end_date } = req.body;
+    if (name !== undefined && String(name).trim() === '') {
+      return res.status(400).json({ message: 'Trip name cannot be empty' });
+    }
+    const sDate = start_date || trip.start_date;
+    const eDate = end_date || trip.end_date;
+    if (sDate && eDate && new Date(sDate) > new Date(eDate)) {
+      return res.status(400).json({ message: 'End date must be greater than or equal to start date' });
+    }
+
     const fields = ['name', 'description', 'start_date', 'end_date', 'cover_photo', 'status', 'is_public'];
     fields.forEach(f => { if (req.body[f] !== undefined) trip[f] = req.body[f]; });
     await trip.save();
@@ -87,8 +100,15 @@ const updateTrip = async (req, res) => {
 // @route DELETE /api/trips/:id
 const deleteTrip = async (req, res) => {
   try {
-    const deleted = await Trip.destroy({ where: { id: req.params.id, user_id: req.user.id } });
-    if (!deleted) return res.status(404).json({ message: 'Trip not found' });
+    const trip = await Trip.findOne({ where: { id: req.params.id, user_id: req.user.id } });
+    if (!trip) return res.status(404).json({ message: 'Trip not found' });
+    const stops = await Stop.findAll({ where: { trip_id: trip.id }, attributes: ['id'] });
+    const stopIds = stops.map(stop => stop.id);
+    if (stopIds.length) {
+      await StopActivity.destroy({ where: { stop_id: stopIds } });
+      await Stop.destroy({ where: { id: stopIds } });
+    }
+    await trip.destroy();
     res.json({ message: 'Trip deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -104,7 +124,16 @@ const addStop = async (req, res) => {
     const trip = await Trip.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!trip) return res.status(404).json({ message: 'Trip not found' });
     const { city_id, start_date, end_date, budget, order_index } = req.body;
-    const stop = await Stop.create({ trip_id: trip.id, city_id, start_date, end_date, budget, order_index: order_index || 0 });
+    if (!city_id || !start_date || !end_date) {
+      return res.status(400).json({ message: 'City, start date, and end date are required for a stop' });
+    }
+    if (new Date(start_date) > new Date(end_date)) {
+      return res.status(400).json({ message: 'Stop end date must be greater than or equal to start date' });
+    }
+    if (new Date(start_date) < new Date(trip.start_date) || new Date(end_date) > new Date(trip.end_date)) {
+      return res.status(400).json({ message: `Stop dates must be within the trip's date range (${trip.start_date} to ${trip.end_date})` });
+    }
+    const stop = await Stop.create({ trip_id: trip.id, city_id, start_date, end_date, budget: budget || 0, order_index: order_index || 0 });
     const full = await Stop.findByPk(stop.id, { include: [City] });
     res.status(201).json(full);
   } catch (err) {
@@ -119,6 +148,18 @@ const updateStop = async (req, res) => {
       include: [{ model: Trip, where: { user_id: req.user.id } }]
     });
     if (!stop) return res.status(404).json({ message: 'Stop not found' });
+    const { city_id, start_date, end_date, budget, order_index } = req.body;
+    const sDate = start_date || stop.start_date;
+    const eDate = end_date || stop.end_date;
+    if (sDate && eDate && new Date(sDate) > new Date(eDate)) {
+      return res.status(400).json({ message: 'Stop end date must be greater than or equal to start date' });
+    }
+    if (stop.Trip) {
+      const t = stop.Trip;
+      if (sDate && eDate && (new Date(sDate) < new Date(t.start_date) || new Date(eDate) > new Date(t.end_date))) {
+        return res.status(400).json({ message: `Stop dates must be within the trip's date range (${t.start_date} to ${t.end_date})` });
+      }
+    }
     const fields = ['city_id', 'start_date', 'end_date', 'budget', 'order_index'];
     fields.forEach(f => { if (req.body[f] !== undefined) stop[f] = req.body[f]; });
     await stop.save();

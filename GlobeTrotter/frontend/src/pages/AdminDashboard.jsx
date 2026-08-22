@@ -14,10 +14,17 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
 
+  const [citiesList, setCitiesList] = useState([])
+  const [cityForm, setCityForm] = useState({ name: '', country: '', cost_index: 50, popularity: 50, description: '', image_url: '' })
+  const [activityForm, setActivityForm] = useState({ city_id: '', name: '', category: 'sightseeing', cost: 0, duration_hours: 1, description: '', image_url: '' })
+  const [destMsg, setDestMsg] = useState('')
+  const [destErr, setDestErr] = useState('')
+
   useEffect(() => {
     api.get('/admin/stats').then(res => setStats(res.data || {})).catch(() => setStats({ totalUsers: 0, totalTrips: 0, totalCities: 0, totalActivities: 0, popularCities: [], tripsByStatus: [] }))
     api.get('/admin/users').then(res => setUsers(Array.isArray(res.data) ? res.data : [])).catch(() => setUsers([]))
-  }, [])
+    api.get('/cities').then(res => setCitiesList(res.data)).catch(() => {})
+  }, [tab])
 
   const removeUser = async (id) => {
     if (!confirm('Permanently remove this user account?')) return
@@ -36,8 +43,34 @@ export default function AdminDashboard() {
       await api.put(`/users/${user.id}/role`, { role: newRole })
       setUsers(users.map(u => u.id === user.id ? { ...u, role: newRole } : u))
     } catch (err) {
-      // Fallback update in state if endpoint is mocked
-      setUsers(users.map(u => u.id === user.id ? { ...u, role: newRole } : u))
+      alert(err.response?.data?.message || 'Failed to update user role')
+    }
+  }
+
+  const handleCreateCity = async (e) => {
+    e.preventDefault()
+    setDestMsg('')
+    setDestErr('')
+    try {
+      const { data } = await api.post('/cities', cityForm)
+      setDestMsg(`Successfully added city: ${data.name}!`)
+      setCitiesList([...citiesList, data])
+      setCityForm({ name: '', country: '', cost_index: 50, popularity: 50, description: '', image_url: '' })
+    } catch (err) {
+      setDestErr(err.response?.data?.message || 'Could not create city')
+    }
+  }
+
+  const handleCreateActivity = async (e) => {
+    e.preventDefault()
+    setDestMsg('')
+    setDestErr('')
+    try {
+      const { data } = await api.post('/activities', activityForm)
+      setDestMsg(`Successfully added activity: ${data.name}!`)
+      setActivityForm({ city_id: '', name: '', category: 'sightseeing', cost: 0, duration_hours: 1, description: '', image_url: '' })
+    } catch (err) {
+      setDestErr(err.response?.data?.message || 'Could not create activity')
     }
   }
 
@@ -53,23 +86,16 @@ export default function AdminDashboard() {
     visits: parseInt(c.dataValues ? c.dataValues.visits : c.visits || 1)
   }))
 
-  // Derived user demographic breakdown by Country
-  const countryMap = {}
-  users.forEach(u => {
-    const cntry = u.country || 'Unknown'
-    countryMap[cntry] = (countryMap[cntry] || 0) + 1
-  })
-  const countryData = Object.keys(countryMap).map(k => ({ country: k, count: countryMap[k] })).slice(0, 5)
+  const countryData = (stats.usersByCountry || []).map(item => ({
+    country: item.country || 'Unknown',
+    count: Number(item.dataValues?.count || item.count || 0)
+  })).slice(0, 5)
 
-  // Derived monthly trend mock
-  const trendData = [
-    { month: 'Jan', trips: 12, users: 8 },
-    { month: 'Feb', trips: 19, users: 15 },
-    { month: 'Mar', trips: 27, users: 22 },
-    { month: 'Apr', trips: 34, users: 29 },
-    { month: 'May', trips: 45, users: 38 },
-    { month: 'Jun', trips: 62, users: 51 }
-  ]
+  const trendData = (stats.growthTrend || []).map(item => ({
+    month: item.month,
+    trips: Number(item.trips || 0),
+    users: Number(item.users || 0)
+  }))
 
   const filteredUsers = users.filter(u => {
     const matchesSearch = `${u.first_name} ${u.last_name} ${u.email} ${u.city} ${u.country}`.toLowerCase().includes(searchTerm.toLowerCase())
@@ -80,8 +106,8 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout title="Admin Control Center" subtitle="Manage users, platform analytics, trends, and access roles">
       {/* Navigation Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-slate-200 pb-3">
-        {['overview', 'users', 'analytics'].map(t => (
+      <div className="flex gap-2 mb-6 border-b border-slate-200 pb-3 overflow-x-auto">
+        {['overview', 'users', 'analytics', 'destinations'].map(t => (
           <button
             key={t} onClick={() => setTab(t)}
             className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
@@ -122,7 +148,7 @@ export default function AdminDashboard() {
             <div className="card p-6 border border-slate-200">
               <h3 className="font-display font-bold text-navy-900 text-sm mb-4">Top Visited Cities</h3>
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={cityData.length ? cityData : [{ name: 'Paris', visits: 10 }, { name: 'Tokyo', visits: 8 }]}>
+                <BarChart data={cityData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
@@ -155,7 +181,7 @@ export default function AdminDashboard() {
           <div className="card p-6 border border-slate-200">
             <h3 className="font-display font-bold text-navy-900 text-sm mb-4">User Origin Demographics</h3>
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={countryData.length ? countryData : [{ country: 'USA', count: 5 }, { country: 'India', count: 12 }]} layout="vertical">
+              <BarChart data={countryData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
                 <XAxis type="number" tick={{ fontSize: 11 }} />
                 <YAxis dataKey="country" type="category" tick={{ fontSize: 11 }} width={90} />
@@ -274,6 +300,141 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {tab === 'destinations' && (
+        <div className="space-y-6">
+          {/* Status feedback */}
+          {destMsg && <div className="p-3.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">{destMsg}</div>}
+          {destErr && <div className="p-3.5 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold">{destErr}</div>}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Form 1: Add City */}
+            <div className="card p-6 border border-slate-200 space-y-4">
+              <h3 className="font-display font-bold text-slate-900 text-sm pb-2 border-b border-slate-100">Add New City (Destination)</h3>
+              <form onSubmit={handleCreateCity} className="space-y-3 text-xs">
+                <div>
+                  <label className="label">City Name *</label>
+                  <input
+                    type="text" required className="input-field py-2 text-xs" placeholder="e.g. Kyoto"
+                    value={cityForm.name} onChange={e => setCityForm({ ...cityForm, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="label">Country *</label>
+                  <input
+                    type="text" required className="input-field py-2 text-xs" placeholder="e.g. Japan"
+                    value={cityForm.country} onChange={e => setCityForm({ ...cityForm, country: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label">Cost Index (1-100)</label>
+                    <input
+                      type="number" min="1" max="100" className="input-field py-2 text-xs"
+                      value={cityForm.cost_index} onChange={e => setCityForm({ ...cityForm, cost_index: parseInt(e.target.value) || 50 })}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Popularity (1-100)</label>
+                    <input
+                      type="number" min="1" max="100" className="input-field py-2 text-xs"
+                      value={cityForm.popularity} onChange={e => setCityForm({ ...cityForm, popularity: parseInt(e.target.value) || 50 })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="label">Image URL (optional)</label>
+                  <input
+                    type="text" className="input-field py-2 text-xs" placeholder="https://..."
+                    value={cityForm.image_url} onChange={e => setCityForm({ ...cityForm, image_url: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="label">Description</label>
+                  <textarea
+                    rows="3" className="input-field py-2 text-xs" placeholder="Describe the city..."
+                    value={cityForm.description} onChange={e => setCityForm({ ...cityForm, description: e.target.value })}
+                  />
+                </div>
+                <button type="submit" className="btn-primary w-full py-2.5 text-xs font-bold mt-2">
+                  Create Destination City
+                </button>
+              </form>
+            </div>
+
+            {/* Form 2: Add Activity */}
+            <div className="card p-6 border border-slate-200 space-y-4">
+              <h3 className="font-display font-bold text-slate-900 text-sm pb-2 border-b border-slate-100">Add New Activity</h3>
+              <form onSubmit={handleCreateActivity} className="space-y-3 text-xs">
+                <div>
+                  <label className="label">Select Destination City *</label>
+                  <select
+                    required className="input-field py-2 text-xs"
+                    value={activityForm.city_id} onChange={e => setActivityForm({ ...activityForm, city_id: e.target.value })}
+                  >
+                    <option value="">Choose a city</option>
+                    {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}, {c.country}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Activity Name *</label>
+                  <input
+                    type="text" required className="input-field py-2 text-xs" placeholder="e.g. Bamboo Forest Walk"
+                    value={activityForm.name} onChange={e => setActivityForm({ ...activityForm, name: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-2">
+                    <label className="label">Category</label>
+                    <select
+                      className="input-field py-2 text-xs"
+                      value={activityForm.category} onChange={e => setActivityForm({ ...activityForm, category: e.target.value })}
+                    >
+                      <option value="sightseeing">Sightseeing</option>
+                      <option value="food">Food</option>
+                      <option value="adventure">Adventure</option>
+                      <option value="transport">Transport</option>
+                      <option value="stay">Stay</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Cost ($) *</label>
+                    <input
+                      type="number" min="0" required className="input-field py-2 text-xs"
+                      value={activityForm.cost} onChange={e => setActivityForm({ ...activityForm, cost: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="label">Duration (Hours)</label>
+                  <input
+                    type="number" step="0.5" min="0.5" className="input-field py-2 text-xs"
+                    value={activityForm.duration_hours} onChange={e => setActivityForm({ ...activityForm, duration_hours: parseFloat(e.target.value) || 1 })}
+                  />
+                </div>
+                <div>
+                  <label className="label">Image URL (optional)</label>
+                  <input
+                    type="text" className="input-field py-2 text-xs" placeholder="https://..."
+                    value={activityForm.image_url} onChange={e => setActivityForm({ ...activityForm, image_url: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="label">Description</label>
+                  <textarea
+                    rows="2" className="input-field py-2 text-xs" placeholder="Describe the activity..."
+                    value={activityForm.description} onChange={e => setActivityForm({ ...activityForm, description: e.target.value })}
+                  />
+                </div>
+                <button type="submit" className="btn-primary w-full py-2.5 text-xs font-bold mt-2">
+                  Create Travel Activity
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}

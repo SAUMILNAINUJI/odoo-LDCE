@@ -13,6 +13,7 @@ export default function ItineraryBuilder() {
   const [activities, setActivities] = useState([])
   const [newStop, setNewStop] = useState({ city_id: '', start_date: '', end_date: '', budget: '' })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const loadTrip = async () => {
     const { data } = await api.get(`/trips/${id}`)
@@ -33,10 +34,26 @@ export default function ItineraryBuilder() {
 
   const addSection = async (e) => {
     e.preventDefault()
-    if (!newStop.city_id) return
-    await api.post(`/trips/${id}/stops`, { ...newStop, order_index: trip.Stops?.length || 0 })
-    setNewStop({ city_id: '', start_date: '', end_date: '', budget: '' })
-    loadTrip()
+    setError('')
+    if (!newStop.city_id || !newStop.start_date || !newStop.end_date) {
+      setError('City, start date, and end date are required.')
+      return
+    }
+    if (new Date(newStop.start_date) > new Date(newStop.end_date)) {
+      setError('Stop end date must be greater than or equal to start date.')
+      return
+    }
+    if (new Date(newStop.start_date) < new Date(trip.start_date) || new Date(newStop.end_date) > new Date(trip.end_date)) {
+      setError(`Stop dates must be within the trip range (${trip.start_date} to ${trip.end_date}).`)
+      return
+    }
+    try {
+      await api.post(`/trips/${id}/stops`, { ...newStop, order_index: trip.Stops?.length || 0 })
+      setNewStop({ city_id: '', start_date: '', end_date: '', budget: '' })
+      loadTrip()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not add section.')
+    }
   }
 
   const removeStop = async (stopId) => {
@@ -127,6 +144,11 @@ export default function ItineraryBuilder() {
             <p className="font-display font-semibold text-navy-900 mb-3 flex items-center gap-2">
               <PlusCircle className="w-4 h-4 text-brand-500" /> Add another Section
             </p>
+            {error && (
+              <div className="mb-3 text-xs bg-rose-50 border border-rose-200 text-rose-600 px-3 py-2.5 rounded-xl">
+                {error}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <select required className="input-field col-span-2" value={newStop.city_id} onChange={(e) => setNewStop({ ...newStop, city_id: e.target.value })}>
                 <option value="">Select a city</option>

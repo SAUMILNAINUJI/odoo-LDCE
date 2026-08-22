@@ -23,7 +23,38 @@ const getStats = async (req, res) => {
       group: ['status']
     });
 
-    res.json({ totalUsers, totalTrips, totalCities, totalActivities, popularCities, tripsByStatus });
+    const dateFormat = sequelize.getDialect() === 'mysql'
+      ? sequelize.fn('DATE_FORMAT', sequelize.col('created_at'), '%Y-%m')
+      : sequelize.fn('strftime', '%Y-%m', sequelize.col('created_at'));
+    const [growthTrips, growthUsers, usersByCountry] = await Promise.all([
+      Trip.findAll({
+        attributes: [[dateFormat, 'month'], [sequelize.fn('COUNT', sequelize.col('id')), 'trips']],
+        group: [dateFormat],
+        order: [[dateFormat, 'ASC']]
+      }),
+      User.findAll({
+        attributes: [[dateFormat, 'month'], [sequelize.fn('COUNT', sequelize.col('id')), 'users']],
+        group: [dateFormat],
+        order: [[dateFormat, 'ASC']]
+      }),
+      User.findAll({
+        attributes: ['country', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+        group: ['country'],
+        order: [[sequelize.literal('count'), 'DESC']]
+      })
+    ]);
+
+    const growthByMonth = new Map();
+    growthTrips.forEach(row => {
+      const month = row.get('month');
+      if (month) growthByMonth.set(month, { month, trips: Number(row.get('trips')) });
+    });
+    growthUsers.forEach(row => {
+      const month = row.get('month');
+      if (month) growthByMonth.set(month, { ...(growthByMonth.get(month) || { month }), users: Number(row.get('users')) });
+    });
+
+    res.json({ totalUsers, totalTrips, totalCities, totalActivities, popularCities, tripsByStatus, growthTrend: Array.from(growthByMonth.values()), usersByCountry });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
