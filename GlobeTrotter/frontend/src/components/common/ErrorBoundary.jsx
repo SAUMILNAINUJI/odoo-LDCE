@@ -30,11 +30,11 @@ export default class ErrorBoundary extends React.Component {
             <button
               onClick={() => {
                 this.setState({ hasError: false, error: null })
-                window.location.href = '/dashboard'
+                window.location.reload()
               }}
               className="btn-primary w-full py-2.5 text-xs font-bold"
             >
-              <RefreshCw className="w-4 h-4" /> Reload Dashboard
+              <RefreshCw className="w-4 h-4" /> Reload Page
             </button>
           </div>
         </div>

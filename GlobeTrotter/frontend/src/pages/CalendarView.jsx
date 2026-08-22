@@ -15,8 +15,15 @@ export default function CalendarView() {
 
   useEffect(() => {
     api.get('/trips').then(res => {
-      const all = [...res.data.ongoing, ...res.data.upcoming, ...res.data.completed]
+      const data = res.data || {}
+      const all = [
+        ...(data.ongoing || []),
+        ...(data.upcoming || []),
+        ...(data.completed || [])
+      ]
       setTrips(all)
+    }).catch(() => {
+      setTrips([])
     })
   }, [])
 
