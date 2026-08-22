@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Compass, Search, Users, User } from 'lucide-react'
 
 export default function MobileBottomNav() {

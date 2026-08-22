@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, User, MapPin, Compass, Users, Shield, LogIn, UserPlus, X, Globe2
 } from 'lucide-react'

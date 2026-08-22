@@ -76,74 +76,74 @@ export default function Dashboard() {
   return (
     <DashboardLayout title="Home" subtitle={`Welcome back, ${user?.first_name}!`}>
       
-      {/* Metric Stats Row (Matching Image 1) */}
+      {/* Metric Stats Row (Problem Statement Requirements: Upcoming Trips, Popular Cities, Quick Actions) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         
-        {/* Card 1: Today's Money */}
-        <div className="card p-5 border border-slate-200 relative overflow-hidden flex flex-col justify-between shadow-sm">
+        {/* Card 1: Upcoming Trips */}
+        <div className="card p-5 border border-slate-200 relative overflow-hidden flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => navigate('/trips')}>
           <div className="flex items-start justify-between">
             <div className="p-3 bg-[#18181B] text-white rounded-2xl shadow-md">
-              <Wallet className="w-5 h-5" />
+              <Compass className="w-5 h-5" />
             </div>
             <div className="text-right">
-              <p className="text-xs font-semibold text-slate-500">Today's Money</p>
-              <h3 className="font-display text-2xl font-bold text-slate-900">$53k</h3>
+              <p className="text-xs font-semibold text-slate-500">Upcoming Trips</p>
+              <h3 className="font-display text-2xl font-bold text-slate-900">{upcomingTrips.length || allTrips.length}</h3>
             </div>
           </div>
-          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center text-xs">
-            <span className="font-bold text-emerald-600 mr-1">+55%</span>
-            <span className="text-slate-500">than last week</span>
+          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-900 flex items-center gap-1">View Itineraries <ArrowRight className="w-3 h-3" /></span>
+            <span className="text-slate-400">Active</span>
           </div>
         </div>
 
-        {/* Card 2: Today's Users */}
-        <div className="card p-5 border border-slate-200 relative overflow-hidden flex flex-col justify-between shadow-sm">
+        {/* Card 2: Popular Destinations */}
+        <div className="card p-5 border border-slate-200 relative overflow-hidden flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => navigate('/cities')}>
           <div className="flex items-start justify-between">
             <div className="p-3 bg-[#18181B] text-white rounded-2xl shadow-md">
-              <Users className="w-5 h-5" />
+              <MapPin className="w-5 h-5" />
             </div>
             <div className="text-right">
-              <p className="text-xs font-semibold text-slate-500">Today's Users</p>
-              <h3 className="font-display text-2xl font-bold text-slate-900">2,300</h3>
+              <p className="text-xs font-semibold text-slate-500">Popular Cities</p>
+              <h3 className="font-display text-2xl font-bold text-slate-900">{cities.length || 8}</h3>
             </div>
           </div>
-          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center text-xs">
-            <span className="font-bold text-emerald-600 mr-1">+3%</span>
-            <span className="text-slate-500">than last month</span>
+          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-900 flex items-center gap-1">Explore Cities <ArrowRight className="w-3 h-3" /></span>
+            <span className="text-slate-400">Global</span>
           </div>
         </div>
 
-        {/* Card 3: New Clients / Planned Trips */}
-        <div className="card p-5 border border-slate-200 relative overflow-hidden flex flex-col justify-between shadow-sm">
+        {/* Card 3: Total Itineraries */}
+        <div className="card p-5 border border-slate-200 relative overflow-hidden flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => navigate('/trips/new')}>
           <div className="flex items-start justify-between">
             <div className="p-3 bg-[#18181B] text-white rounded-2xl shadow-md">
               <PlaneTakeoff className="w-5 h-5" />
             </div>
             <div className="text-right">
-              <p className="text-xs font-semibold text-slate-500">Planned Trips</p>
-              <h3 className="font-display text-2xl font-bold text-slate-900">{allTrips.length || 3462}</h3>
+              <p className="text-xs font-semibold text-slate-500">Plan New Trip</p>
+              <h3 className="font-display text-2xl font-bold text-slate-900">+ Create</h3>
             </div>
           </div>
-          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center text-xs">
-            <span className="font-bold text-rose-500 mr-1">-2%</span>
-            <span className="text-slate-500">than yesterday</span>
+          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-900 flex items-center gap-1">Multi-City Builder <ArrowRight className="w-3 h-3" /></span>
+            <span className="text-slate-400">Custom</span>
           </div>
         </div>
 
-        {/* Card 4: Total Sales */}
-        <div className="card p-5 border border-slate-200 relative overflow-hidden flex flex-col justify-between shadow-sm">
+        {/* Card 4: Trip Budget Highlights */}
+        <div className="card p-5 border border-slate-200 relative overflow-hidden flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => navigate('/trips')}>
           <div className="flex items-start justify-between">
             <div className="p-3 bg-[#18181B] text-white rounded-2xl shadow-md">
-              <BarChart3 className="w-5 h-5" />
+              <Wallet className="w-5 h-5" />
             </div>
             <div className="text-right">
-              <p className="text-xs font-semibold text-slate-500">Sales</p>
-              <h3 className="font-display text-2xl font-bold text-slate-900">$103,430</h3>
+              <p className="text-xs font-semibold text-slate-500">Budget Breakdown</p>
+              <h3 className="font-display text-2xl font-bold text-slate-900">Track $</h3>
             </div>
           </div>
-          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center text-xs">
-            <span className="font-bold text-emerald-600 mr-1">+5%</span>
-            <span className="text-slate-500">than yesterday</span>
+          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-900 flex items-center gap-1">Expense Highlights <ArrowRight className="w-3 h-3" /></span>
+            <span className="text-slate-400">Budget</span>
           </div>
         </div>
 
@@ -154,15 +154,17 @@ export default function Dashboard() {
         
         {/* Chart 1: Website View (Green Bar Chart) */}
         <div className="card p-6 border border-slate-200">
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={websiteViewData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#64748B' }} />
-              <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
-              <Tooltip />
-              <Bar dataKey="view" fill="#16A34A" radius={[4, 4, 0, 0]} barSize={10} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="w-full h-44 min-h-[180px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={180}>
+              <BarChart data={websiteViewData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#64748B' }} />
+                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
+                <Tooltip />
+                <Bar dataKey="view" fill="#16A34A" radius={[4, 4, 0, 0]} barSize={10} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
           <div className="pt-4 border-t border-slate-100 mt-4">
             <h4 className="font-display font-bold text-slate-900 text-sm">Website View</h4>
             <p className="text-xs text-slate-500 mt-0.5">Last Campaign Performance</p>
@@ -171,15 +173,17 @@ export default function Dashboard() {
 
         {/* Chart 2: Daily Sales (Blue Line Chart) */}
         <div className="card p-6 border border-slate-200">
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={dailySalesData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-              <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#64748B' }} />
-              <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
-              <Tooltip />
-              <Line type="monotone" dataKey="sales" stroke="#0284C7" strokeWidth={3} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="w-full h-44 min-h-[180px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={180}>
+              <LineChart data={dailySalesData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#64748B' }} />
+                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="sales" stroke="#0284C7" strokeWidth={3} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
           <div className="pt-4 border-t border-slate-100 mt-4">
             <h4 className="font-display font-bold text-slate-900 text-sm">Daily Sales</h4>
             <p className="text-xs text-slate-500 mt-0.5">(+15%) increase in today sales.</p>
@@ -188,15 +192,17 @@ export default function Dashboard() {
 
         {/* Chart 3: Completed Tasks (Green Line Chart) */}
         <div className="card p-6 border border-slate-200">
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={completedTasksData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-              <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#64748B' }} />
-              <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
-              <Tooltip />
-              <Line type="monotone" dataKey="tasks" stroke="#16A34A" strokeWidth={3} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="w-full h-44 min-h-[180px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={180}>
+              <LineChart data={completedTasksData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#64748B' }} />
+                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="tasks" stroke="#16A34A" strokeWidth={3} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
           <div className="pt-4 border-t border-slate-100 mt-4">
             <h4 className="font-display font-bold text-slate-900 text-sm">Completed Tasks</h4>
             <p className="text-xs text-slate-500 mt-0.5">just updated</p>
