@@ -5,10 +5,11 @@ const { City } = require('../models');
 // @route GET /api/cities?search=&country=&sort=
 const getCities = async (req, res) => {
   try {
-    const { search, country, sort } = req.query;
+    const { search, country, maxCost, sort } = req.query;
     const where = {};
     if (search) where.name = { [Op.like]: `%${search}%` };
     if (country) where.country = country;
+    if (maxCost) where.cost_index = { [Op.lte]: Number(maxCost) };
 
     let order = [['popularity', 'DESC']];
     if (sort === 'cost_asc') order = [['cost_index', 'ASC']];

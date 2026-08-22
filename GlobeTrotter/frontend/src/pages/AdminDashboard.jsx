@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area } from 'recharts'
 import { Users, PlaneTakeoff, MapPin, Sparkles, Trash2, Shield, UserCheck, Search, Filter } from 'lucide-react'
-import DashboardLayout from '../components/layout/DashboardLayout'
+import AdminLayout from '../components/layout/AdminLayout'
 import StatCard from '../components/common/StatCard'
 import api from '../api/axios'
 
 const COLORS = ['#18181B', '#3F3F46', '#71717A', '#A1A1AA', '#D4D4D8', '#0EA5E9']
 
 export default function AdminDashboard() {
-  const [tab, setTab] = useState('overview')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [tab, setTab] = useState(searchParams.get('tab') || 'overview')
   const [stats, setStats] = useState(null)
   const [users, setUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -25,6 +27,16 @@ export default function AdminDashboard() {
     api.get('/admin/users').then(res => setUsers(Array.isArray(res.data) ? res.data : [])).catch(() => setUsers([]))
     api.get('/cities').then(res => setCitiesList(res.data)).catch(() => {})
   }, [tab])
+
+  useEffect(() => {
+    const requestedTab = searchParams.get('tab') || 'overview'
+    if (requestedTab !== tab) setTab(requestedTab)
+  }, [searchParams])
+
+  const changeTab = (nextTab) => {
+    setTab(nextTab)
+    setSearchParams(nextTab === 'overview' ? {} : { tab: nextTab })
+  }
 
   const removeUser = async (id) => {
     if (!confirm('Permanently remove this user account?')) return
@@ -74,7 +86,7 @@ export default function AdminDashboard() {
     }
   }
 
-  if (!stats) return <DashboardLayout title="Admin Control Center"><p className="text-slate-400 text-sm">Loading analytics data...</p></DashboardLayout>
+  if (!stats) return <AdminLayout title="Admin Control Center"><p className="text-slate-400 text-sm">Loading analytics data...</p></AdminLayout>
 
   const statusData = (stats.tripsByStatus || []).map(t => ({
     name: t.status ? t.status.toUpperCase() : 'OTHER',
@@ -104,12 +116,12 @@ export default function AdminDashboard() {
   })
 
   return (
-    <DashboardLayout title="Admin Control Center" subtitle="Manage users, platform analytics, trends, and access roles">
+    <AdminLayout title="Admin Control Center" subtitle="Manage users, platform analytics, trends, and access roles">
       {/* Navigation Tabs */}
       <div className="flex gap-2 mb-6 border-b border-slate-200 pb-3 overflow-x-auto">
         {['overview', 'users', 'analytics', 'destinations'].map(t => (
           <button
-            key={t} onClick={() => setTab(t)}
+            key={t} onClick={() => changeTab(t)}
             className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
               tab === t ? 'bg-zinc-950 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
@@ -438,6 +450,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-    </DashboardLayout>
+    </AdminLayout>
   )
 }

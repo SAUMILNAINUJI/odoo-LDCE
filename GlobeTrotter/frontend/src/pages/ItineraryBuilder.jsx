@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { PlusCircle, Trash2, MapPin, Search, X, CheckCircle2 } from 'lucide-react'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import api from '../api/axios'
@@ -7,6 +7,7 @@ import api from '../api/axios'
 export default function ItineraryBuilder() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const [trip, setTrip] = useState(null)
   const [cities, setCities] = useState([])
   const [activityPanel, setActivityPanel] = useState(null) // stop id currently browsing activities for
@@ -26,6 +27,8 @@ export default function ItineraryBuilder() {
         await loadTrip()
         const { data } = await api.get('/cities')
         setCities(data)
+        const cityId = params.get('city_id')
+        if (cityId) setNewStop(prev => ({ ...prev, city_id: cityId, start_date: data ? '' : prev.start_date }))
       } finally {
         setLoading(false)
       }

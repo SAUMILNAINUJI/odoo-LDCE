@@ -19,6 +19,7 @@ export default function Register() {
     city: '',
     additional_info: '',
     password: '',
+    confirm_password: '',
     photo: ''
   })
 
@@ -43,7 +44,8 @@ export default function Register() {
 
   const isEmailValid = useMemo(() => !form.email || emailRegex.test(form.email), [form.email])
   const isPhoneValid = useMemo(() => !form.phone || phoneRegex.test(form.phone.trim()), [form.phone])
-  const isPasswordValid = useMemo(() => !form.password || form.password.length >= 6, [form.password])
+  const isPasswordValid = useMemo(() => !form.password || form.password.length >= 8, [form.password])
+  const passwordsMatch = form.password === form.confirm_password
 
   const update = (field) => (e) => {
     const val = e.target.value
@@ -87,8 +89,12 @@ export default function Register() {
       return
     }
 
-    if (form.password.length < 6) {
-      setError('Password must be at least 6 characters long.')
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters long.')
+      return
+    }
+    if (!passwordsMatch) {
+      setError('Passwords do not match.')
       return
     }
 
@@ -265,7 +271,7 @@ export default function Register() {
                   type={showPassword ? 'text' : 'password'}
                   required
                   className={`input-field pr-10 ${touched.password && !isPasswordValid ? 'border-rose-500 bg-rose-50/20' : ''}`}
-                  placeholder="•••••••• (Min 6 characters)"
+                  placeholder="•••••••• (Min 8 characters)"
                   value={form.password}
                   onChange={update('password')}
                   onBlur={markTouched('password')}
@@ -280,8 +286,22 @@ export default function Register() {
                 </button>
               </div>
               {touched.password && !isPasswordValid && (
-                <p className="text-[11px] text-rose-500 mt-1">Password must be at least 6 characters.</p>
+                <p className="text-[11px] text-rose-500 mt-1">Password must be at least 8 characters.</p>
               )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Confirm Password *</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                className={`input-field ${form.confirm_password && !passwordsMatch ? 'border-rose-500 bg-rose-50/20' : ''}`}
+                placeholder="Repeat your password"
+                value={form.confirm_password}
+                onChange={update('confirm_password')}
+                autoComplete="new-password"
+              />
+              {form.confirm_password && <p className={`text-[11px] mt-1 ${passwordsMatch ? 'text-emerald-600' : 'text-rose-500'}`}>{passwordsMatch ? 'Passwords match.' : 'Passwords do not match.'}</p>}
             </div>
 
             {/* Checkbox: Terms */}

@@ -73,6 +73,9 @@ const listUsers = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
+    if (Number(req.params.id) === Number(req.user.id)) {
+      return res.status(400).json({ message: 'You cannot delete your own account from user management' });
+    }
     await User.destroy({ where: { id: req.params.id } });
     res.json({ message: 'User removed' });
   } catch (err) {

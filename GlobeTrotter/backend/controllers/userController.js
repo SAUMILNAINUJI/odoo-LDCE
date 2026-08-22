@@ -29,8 +29,8 @@ const updateProfile = async (req, res) => {
     fields.forEach(f => { if (req.body[f] !== undefined) user[f] = req.body[f]; });
 
     if (req.body.password) {
-      if (req.body.password.length < 6) {
-        return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+      if (req.body.password.length < 8) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters long' });
       }
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(req.body.password, salt);
@@ -61,6 +61,7 @@ const updateUserRole = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.id === req.user.id) return res.status(400).json({ message: 'You cannot change your own role' });
     if (req.body.role && ['admin', 'user'].includes(req.body.role)) {
       user.role = req.body.role;
     }
