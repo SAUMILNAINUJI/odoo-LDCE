@@ -1,3 +1,6 @@
+import { Heart } from 'lucide-react'
+import useFavorite from '../../hooks/useFavorite'
+
 const categoryColors = {
   sightseeing: 'bg-brand-50 text-brand-600',
   food: 'bg-amber-50 text-accent-amber',
@@ -8,12 +11,14 @@ const categoryColors = {
 }
 
 export default function ActivityCard({ activity, onAdd }) {
+  const { saved, saving, toggleFavorite } = useFavorite('activity', activity.id)
   return (
-    <div className="card p-4 flex items-center gap-4">
+    <div className="card p-4 flex items-center gap-4 relative">
       <div
         className="w-16 h-16 rounded-xl bg-slate-200 bg-cover bg-center shrink-0"
         style={{ backgroundImage: `url(${activity.image_url})` }}
       />
+      <button onClick={toggleFavorite} disabled={saving} className="absolute right-3 top-3 rounded-full bg-white/95 p-1.5 text-slate-700 shadow-sm hover:text-rose-500 disabled:opacity-60" title={saved ? 'Remove from saved places' : 'Save activity'} aria-label={saved ? 'Remove activity from saved places' : 'Save activity'}><Heart className={`h-3.5 w-3.5 ${saved ? 'fill-rose-500 text-rose-500' : ''}`} /></button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <h4 className="font-semibold text-navy-900 text-sm truncate">{activity.name}</h4>

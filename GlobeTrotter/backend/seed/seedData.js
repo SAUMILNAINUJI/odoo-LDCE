@@ -39,6 +39,10 @@ const seed = async () => {
     await sequelize.authenticate();
     await sequelize.sync();
     await ensureSchema();
+    if (sequelize.getDialect() === 'sqlite') {
+      const columns = await sequelize.query('PRAGMA table_info(points_of_interest)');
+      if (!columns[0].some(column => column.name === 'price')) await sequelize.query('ALTER TABLE points_of_interest ADD COLUMN price DECIMAL(10,2)');
+    }
 
     // Admin user
     const adminExists = await User.findOne({ where: { email: 'admin@globetrotter.com' } });
@@ -90,10 +94,15 @@ const seed = async () => {
       }
       if (await PointOfInterest.count({ where: { city_id: city.id } }) === 0) {
         await PointOfInterest.bulkCreate([
-          { city_id: city.id, type: 'hotel', name: `${c.name} Garden Stay`, description: 'Seeded demo accommodation record for application testing.', price_tier: c.cost_index > 60 ? 'Premium' : 'Budget', rating: 4.3, distance_km: 2.4, amenities: 'Breakfast, Wi-Fi', image_url: c.image_url },
-          { city_id: city.id, type: 'restaurant', name: `${c.name} Local Table`, description: 'Seeded demo restaurant record featuring local cuisine.', price_tier: c.cost_index > 60 ? 'Premium' : 'Moderate', rating: 4.4, distance_km: 1.8, amenities: 'Local food, Vegetarian options', image_url: c.image_url },
-          { city_id: city.id, type: 'transport', name: `${c.name} Central Transfer`, description: 'Seeded informational transport option. Availability is not live.', price_tier: 'Information', rating: 4.0, distance_km: 5.2, amenities: 'Airport, Railway, Taxi', image_url: c.image_url }
+          { city_id: city.id, type: 'hotel', name: `${c.name} Garden Stay`, description: 'Seeded demo accommodation record for application testing.', price: 1800 + (c.cost_index * 45), price_tier: c.cost_index > 60 ? 'Premium' : 'Budget', rating: 4.3, distance_km: 2.4, amenities: 'Breakfast, Wi-Fi', image_url: c.image_url },
+          { city_id: city.id, type: 'restaurant', name: `${c.name} Local Table`, description: 'Seeded demo restaurant record featuring local cuisine.', price: 700 + (c.cost_index * 18), price_tier: c.cost_index > 60 ? 'Premium' : 'Moderate', rating: 4.4, distance_km: 1.8, amenities: 'Local food, Vegetarian options', image_url: c.image_url },
+          { city_id: city.id, type: 'transport', name: `${c.name} Central Transfer`, description: 'Seeded informational transport option. Availability is not live.', price: 120 + (c.cost_index * 4), price_tier: 'Information', rating: 4.0, distance_km: 5.2, amenities: 'Airport, Railway, Taxi', image_url: c.image_url }
         ]);
+      }
+      const points = await PointOfInterest.findAll({ where: { city_id: city.id } });
+      for (const point of points) {
+        const price = point.type === 'hotel' ? 1800 + (c.cost_index * 45) : point.type === 'restaurant' ? 700 + (c.cost_index * 18) : 120 + (c.cost_index * 4);
+        await point.update({ price });
       }
     }
 

@@ -8,6 +8,7 @@ module.exports = sequelize.define('PointOfInterest', {
   name: { type: DataTypes.STRING(150), allowNull: false },
   description: { type: DataTypes.TEXT },
   price_tier: { type: DataTypes.STRING(50) },
+  price: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
   rating: { type: DataTypes.DECIMAL(2, 1), defaultValue: 4.0 },
   distance_km: { type: DataTypes.DECIMAL(5, 2) },
   amenities: { type: DataTypes.STRING(500) },

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Compass, Search, Users, User } from 'lucide-react'
+import { Heart, LayoutDashboard, Compass, Search, Users, User } from 'lucide-react'
 
 export default function MobileBottomNav() {
   const location = useLocation()
@@ -9,11 +9,12 @@ export default function MobileBottomNav() {
     { label: 'My Trips', path: '/trips', icon: Compass },
     { label: 'Search', path: '/cities', icon: Search },
     { label: 'Community', path: '/community', icon: Users },
-    { label: 'Profile', path: '/profile', icon: User }
+    { label: 'Profile', path: '/profile', icon: User },
+    { label: 'Saved', path: '/saved', icon: Heart }
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#18181B] text-white border-t border-zinc-800 md:hidden px-2 py-2 flex items-center justify-around shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#18181B] text-white border-t border-zinc-800 md:hidden px-1 py-2 flex items-center justify-around shadow-2xl">
       {navItems.map((item) => {
         const Icon = item.icon
         const isActive = item.path === '/dashboard'

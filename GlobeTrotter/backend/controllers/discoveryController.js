@@ -37,7 +37,8 @@ const listPointsOfInterest = async (req, res) => {
   const where = { city_id: req.params.cityId };
   if (req.query.type) where.type = req.query.type;
   if (req.query.search) where.name = { [Op.like]: `%${req.query.search}%` };
-  res.json(await PointOfInterest.findAll({ where, order: [['rating', 'DESC']] }));
+  const points = await PointOfInterest.findAll({ where, order: [['rating', 'DESC']] });
+  res.json(points.map(point => ({ ...point.toJSON(), price: Number(point.price || 0) })));
 };
 
 module.exports = { listFavorites, toggleFavorite, listReviews, createReview, listPointsOfInterest };
