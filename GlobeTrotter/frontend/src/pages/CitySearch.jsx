@@ -10,17 +10,20 @@ export default function CitySearch() {
   const [search, setSearch] = useState(params.get('search') || '')
   const [sort, setSort] = useState('')
   const [maxCost, setMaxCost] = useState('')
+  const [style, setStyle] = useState('')
+  const [tag, setTag] = useState('')
+  const [minRating, setMinRating] = useState('')
   const [cities, setCities] = useState([])
   const [loading, setLoading] = useState(true)
 
   const load = async () => {
     setLoading(true)
-    const { data } = await api.get('/cities', { params: { search, sort, maxCost } })
+    const { data } = await api.get('/cities', { params: { search, sort, maxCost, style, tag, minRating } })
     setCities(data)
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [sort, maxCost])
+  useEffect(() => { load() }, [sort, maxCost, style, tag, minRating])
   useEffect(() => { const t = setTimeout(load, 350); return () => clearTimeout(t) }, [search])
 
   return (
@@ -34,6 +37,27 @@ export default function CitySearch() {
           <option value="">Any budget</option>
           <option value="35">Budget friendly</option>
           <option value="60">Moderate budget</option>
+        </select>
+        <select className="input-field sm:w-56" value={style} onChange={(e) => setStyle(e.target.value)}>
+          <option value="">Any travel style</option>
+          <option value="family">Family</option>
+          <option value="couple">Couple</option>
+          <option value="adventure">Adventure</option>
+          <option value="historical">Historical</option>
+          <option value="spiritual">Spiritual</option>
+          <option value="nature">Nature</option>
+        </select>
+        <select className="input-field sm:w-56" value={tag} onChange={(e) => setTag(e.target.value)}>
+          <option value="">Any destination tag</option>
+          <option value="beach">Beach</option>
+          <option value="temple">Temple</option>
+          <option value="cultural">Cultural</option>
+          <option value="budget">Budget</option>
+        </select>
+        <select className="input-field sm:w-56" value={minRating} onChange={(e) => setMinRating(e.target.value)}>
+          <option value="">Any rating</option>
+          <option value="4.5">4.5+ rating</option>
+          <option value="4.7">4.7+ rating</option>
         </select>
         <select className="input-field sm:w-56" value={sort} onChange={(e) => setSort(e.target.value)}>
           <option value="">Sort by popularity</option>

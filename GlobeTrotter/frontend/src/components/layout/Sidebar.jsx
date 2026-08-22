@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, User, MapPin, Compass, Users, X, Globe2
+  LayoutDashboard, User, MapPin, Compass, Users, Heart, X, Globe2
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -14,6 +14,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { label: 'My Trips', path: '/trips', icon: Compass },
     { label: 'City Search', path: '/cities', icon: MapPin },
     { label: 'Community', path: '/community', icon: Users },
+    { label: 'Saved Places', path: '/saved', icon: Heart },
   ]
 
   const SidebarContent = (

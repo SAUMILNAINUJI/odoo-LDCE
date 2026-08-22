@@ -15,7 +15,6 @@ export default function Register() {
     email: '',
     phone: '',
     country: '',
-    state: '',
     city: '',
     additional_info: '',
     password: '',
@@ -31,7 +30,6 @@ export default function Register() {
   const [locationCities, setLocationCities] = useState([])
 
   const countries = useMemo(() => [...new Set(locationCities.map(city => city.country).filter(Boolean))], [locationCities])
-  const availableStates = []
   const availableCities = useMemo(() => locationCities.filter(city => city.country === form.country).map(city => city.name), [locationCities, form.country])
 
   useEffect(() => {
@@ -52,10 +50,6 @@ export default function Register() {
     setForm(prev => {
       const next = { ...prev, [field]: val }
       if (field === 'country' && val !== prev.country) {
-        next.state = ''
-        next.city = ''
-      }
-      if (field === 'state' && val !== prev.state) {
         next.city = ''
       }
       return next
@@ -228,20 +222,6 @@ export default function Register() {
                   />
                   <datalist id="signup-countries-list">
                     {countries.map(c => <option key={c} value={c} />)}
-                  </datalist>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">State</label>
-                  <input
-                    list="signup-states-list"
-                    className="input-field py-2 text-xs"
-                    placeholder="Type/Select State..."
-                    value={form.state}
-                    onChange={update('state')}
-                  />
-                  <datalist id="signup-states-list">
-                    {availableStates.map(s => <option key={s} value={s} />)}
                   </datalist>
                 </div>
 
