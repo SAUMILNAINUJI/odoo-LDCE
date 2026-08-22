@@ -79,7 +79,7 @@ export default function CreateTrip() {
               </div>
               <div>
                 <label className="label">End Date</label>
-                <input type="date" required className="input-field" value={form.end_date} onChange={update('end_date')} />
+                <input type="date" required className="input-field" value={form.end_date} onChange={update('end_date')} min={form.start_date} />
               </div>
             </div>
             <div>
