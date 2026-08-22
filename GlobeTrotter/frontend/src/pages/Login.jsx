@@ -17,11 +17,6 @@ export default function Login() {
     e.preventDefault()
     setError('')
 
-    if (!agreeTerms) {
-      setError('Please accept the Terms and Conditions to proceed.')
-      return
-    }
-
     setLoading(true)
     try {
       await login(form.email, form.password)

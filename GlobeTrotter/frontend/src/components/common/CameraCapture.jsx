@@ -38,15 +38,53 @@ export default function CameraCapture({ photo, setPhoto }) {
     setIsCameraActive(false)
   }
 
+  const resizeAndSetPhoto = (dataUrl) => {
+    const img = new Image()
+    img.onload = () => {
+      const maxDim = 400
+      let width = img.width
+      let height = img.height
+
+      if (width > height) {
+        if (width > maxDim) {
+          height = Math.round((height * maxDim) / width)
+          width = maxDim
+        }
+      } else {
+        if (height > maxDim) {
+          width = Math.round((width * maxDim) / height)
+          height = maxDim
+        }
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+      const compressedData = canvas.toDataURL('image/jpeg', 0.7)
+      setPhoto(compressedData)
+    }
+    img.src = dataUrl
+  }
+
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return
     const video = videoRef.current
     const canvas = canvasRef.current
-    canvas.width = video.videoWidth || 640
-    canvas.height = video.videoHeight || 480
+    const maxDim = 400
+    let width = video.videoWidth || 640
+    let height = video.videoHeight || 480
+    if (width > height) {
+      if (width > maxDim) { height = Math.round((height * maxDim) / width); width = maxDim; }
+    } else {
+      if (height > maxDim) { width = Math.round((width * maxDim) / height); height = maxDim; }
+    }
+    canvas.width = width
+    canvas.height = height
     const ctx = canvas.getContext('2d')
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    ctx.drawImage(video, 0, 0, width, height)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
     setPhoto(dataUrl)
     stopCamera()
   }
@@ -60,7 +98,7 @@ export default function CameraCapture({ photo, setPhoto }) {
     }
     const reader = new FileReader()
     reader.onload = (event) => {
-      setPhoto(event.target.result)
+      resizeAndSetPhoto(event.target.result)
       stopCamera()
     }
     reader.readAsDataURL(file)

@@ -77,7 +77,7 @@ export default function Register() {
       return
     }
 
-    if (form.phone && !phoneRegex.test(form.phone.replace(/\s+/g, ''))) {
+    if (form.phone && form.phone.trim() !== '' && !phoneRegex.test(form.phone.trim())) {
       setError('Please enter a valid phone number (e.g. +1 555-0199 or 9876543210).')
       return
     }

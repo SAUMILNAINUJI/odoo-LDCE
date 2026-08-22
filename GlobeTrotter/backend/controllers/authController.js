@@ -9,16 +9,20 @@ const phoneRegex = /^[\+]?[0-9\s\-\(\)\.]{7,20}$/;
 // @route POST /api/auth/register
 const registerUser = async (req, res) => {
   try {
-    const { first_name, last_name, email, password, phone, city, state, country, additional_info, photo } = req.body;
+    let { first_name, last_name, email, password, phone, city, state, country, additional_info, photo } = req.body;
     if (!first_name || !last_name || !email || !password) {
       return res.status(400).json({ message: 'Please fill all required fields' });
     }
+
+    email = String(email).trim().toLowerCase();
+    first_name = String(first_name).trim();
+    last_name = String(last_name).trim();
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: 'Please provide a valid email address' });
     }
 
-    if (phone && phone.trim() !== '' && !phoneRegex.test(phone.trim())) {
+    if (phone && String(phone).trim() !== '' && !phoneRegex.test(String(phone).trim())) {
       return res.status(400).json({ message: 'Please provide a valid phone number format' });
     }
 
@@ -61,10 +65,13 @@ const registerUser = async (req, res) => {
 // @route POST /api/auth/login
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
+
+    email = String(email).trim().toLowerCase();
+
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(401).json({ message: 'Invalid email or password' });
 
