@@ -16,6 +16,11 @@ export default function CityCard({ city, onAdd }) {
         <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
           <MapPin className="w-3.5 h-3.5" /> {city.country}
         </p>
+        <div className="mt-3 flex items-center gap-3 text-xs font-semibold text-slate-700">
+          <span>★ {Number(city.rating || 0).toFixed(1)}</span>
+          <span className="text-slate-400">Popularity {city.popularity}</span>
+        </div>
+        {city.tags && <div className="mt-2 flex flex-wrap gap-1.5">{city.tags.split(',').slice(0, 3).map(tag => <span key={tag} className="badge bg-slate-100 text-slate-600">{tag}</span>)}</div>}
         <p className="text-xs text-slate-500 mt-3 line-clamp-2 min-h-8">{city.description || 'Explore this destination and build it into your next itinerary.'}</p>
         <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-100">
           <span className="text-xs font-semibold text-slate-600">Cost index {city.cost_index}</span>

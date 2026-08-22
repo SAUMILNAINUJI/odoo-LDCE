@@ -5,6 +5,7 @@ require('dotenv').config();
 const { sequelize, connectDB } = require('./config/db');
 require('./models'); // registers associations
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+const ensureSchema = require('./utils/ensureSchema');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -13,6 +14,7 @@ const cityRoutes = require('./routes/cityRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const communityRoutes = require('./routes/communityRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const discoveryRoutes = require('./routes/discoveryRoutes');
 
 const app = express();
 
@@ -29,6 +31,7 @@ app.use('/api/cities', cityRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/discovery', discoveryRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -122,6 +125,7 @@ const autoSeed = async () => {
 const start = async () => {
   await connectDB();
   await sequelize.sync();
+  await ensureSchema();
   await autoSeed();
   app.listen(PORT, () => console.log(`GlobeTrotter API running on port ${PORT}`));
 };
