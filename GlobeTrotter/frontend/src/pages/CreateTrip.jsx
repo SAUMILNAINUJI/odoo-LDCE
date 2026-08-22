@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import CityCard from '../components/common/CityCard'
@@ -7,8 +7,10 @@ import api from '../api/axios'
 
 export default function CreateTrip() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const [form, setForm] = useState({ name: '', description: '', start_date: '', end_date: '', cover_photo: '' })
   const [suggestedCities, setSuggestedCities] = useState([])
+  const [destinationId, setDestinationId] = useState(params.get('city_id') || '')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -21,10 +23,16 @@ export default function CreateTrip() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (new Date(form.start_date) > new Date(form.end_date)) {
+      setError('End date must be greater than or equal to start date')
+      return
+    }
+
     setLoading(true)
     try {
       const { data } = await api.post('/trips', form)
-      navigate(`/trips/${data.id}/build`)
+      navigate(`/trips/${data.id}/build${destinationId ? `?city_id=${destinationId}` : ''}`)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not create trip')
     } finally {
@@ -41,6 +49,13 @@ export default function CreateTrip() {
             <div>
               <label className="label">Trip Name</label>
               <input required className="input-field" placeholder="e.g. Summer Europe Getaway" value={form.name} onChange={update('name')} />
+            </div>
+            <div>
+              <label className="label">Starting Destination</label>
+              <select className="input-field" value={destinationId} onChange={(e) => setDestinationId(e.target.value)}>
+                <option value="">Choose a destination in the itinerary builder</option>
+                {suggestedCities.map(city => <option key={city.id} value={city.id}>{city.name}, {city.country}</option>)}
+              </select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

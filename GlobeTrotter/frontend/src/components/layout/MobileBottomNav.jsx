@@ -16,7 +16,9 @@ export default function MobileBottomNav() {
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#18181B] text-white border-t border-zinc-800 md:hidden px-2 py-2 flex items-center justify-around shadow-2xl">
       {navItems.map((item) => {
         const Icon = item.icon
-        const isActive = location.pathname === item.path
+        const isActive = item.path === '/dashboard'
+          ? location.pathname === item.path
+          : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
         return (
           <Link
             key={item.path}

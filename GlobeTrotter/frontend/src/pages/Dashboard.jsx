@@ -38,45 +38,50 @@ export default function Dashboard() {
   const completedTrips = Array.isArray(trips?.completed) ? trips.completed : []
   const allTrips = [...ongoingTrips, ...upcomingTrips, ...completedTrips]
 
-  // Mock charts data matching Image 1
-  const websiteViewData = [
-    { day: 'M', view: 45 },
-    { day: 'T', view: 6 },
-    { day: 'W', view: 2 },
-    { day: 'T', view: 0 },
-    { day: 'F', view: 0 },
-    { day: 'S', view: 0 },
-    { day: 'S', view: 0 }
+  const tripStatusData = [
+    { status: 'Upcoming', count: upcomingTrips.length },
+    { status: 'Ongoing', count: ongoingTrips.length },
+    { status: 'Completed', count: completedTrips.length }
   ]
-
-  const dailySalesData = [
-    { month: 'Apr', sales: 50 },
-    { month: 'May', sales: 40 },
-    { month: 'Jun', sales: 300 },
-    { month: 'Jul', sales: 320 },
-    { month: 'Aug', sales: 500 },
-    { month: 'Sep', sales: 350 },
-    { month: 'Oct', sales: 200 },
-    { month: 'Nov', sales: 230 },
-    { month: 'Dec', sales: 500 }
-  ]
-
-  const completedTasksData = [
-    { month: 'Apr', tasks: 50 },
-    { month: 'May', tasks: 40 },
-    { month: 'Jun', tasks: 300 },
-    { month: 'Jul', tasks: 220 },
-    { month: 'Aug', tasks: 500 },
-    { month: 'Sep', tasks: 250 },
-    { month: 'Oct', tasks: 400 },
-    { month: 'Nov', tasks: 230 },
-    { month: 'Dec', tasks: 500 }
-  ]
+  const destinationData = cities.map(city => ({ name: city.name, popularity: Number(city.popularity || 0) }))
+  const itineraryData = allTrips.map(trip => ({
+    name: trip.name,
+    activities: (trip.Stops || []).reduce((total, stop) => total + (stop.StopActivities || []).length, 0)
+  })).slice(0, 8)
 
   return (
     <DashboardLayout title="Home" subtitle={`Welcome back, ${user?.first_name}!`}>
       
-      {/* Metric Stats Row (Problem Statement Requirements: Upcoming Trips, Popular Cities, Quick Actions) */}
+      {/* Screen 3 Wireframe: Top Banner Image Section */}
+      <div className="rounded-3xl bg-[#18181B] bg-3d-waves text-white p-8 sm:p-12 mb-8 relative overflow-hidden border border-zinc-800 shadow-xl">
+        <div className="relative z-10 max-w-2xl">
+          <span className="badge bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-1 mb-4 inline-block text-xs uppercase tracking-widest font-semibold">
+            Empowering Personalized Travel
+          </span>
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+            Design & Build Your Ideal Multi-City Journey
+          </h1>
+          <p className="text-sm text-zinc-300 mb-6 leading-relaxed">
+            Explore global destinations, organize day-by-day itineraries, track travel budgets, and share your adventures with a global travel community.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => navigate('/trips/new')}
+              className="bg-white text-zinc-950 font-bold text-xs px-6 py-3.5 rounded-2xl flex items-center gap-2 hover:bg-zinc-100 transition shadow-lg shrink-0"
+            >
+              <PlaneTakeoff className="w-4 h-4 text-zinc-950" /> Plan New Trip
+            </button>
+            <button
+              onClick={() => navigate('/cities')}
+              className="bg-zinc-800/80 text-white font-bold text-xs px-6 py-3.5 rounded-2xl flex items-center gap-2 hover:bg-zinc-800 transition border border-zinc-700 backdrop-blur shrink-0"
+            >
+              <Compass className="w-4 h-4 text-zinc-300" /> Explore Destinations
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Metric Stats Row (Upcoming Trips, Popular Cities, Quick Actions) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         
         {/* Card 1: Upcoming Trips */}
@@ -104,7 +109,7 @@ export default function Dashboard() {
             </div>
             <div className="text-right">
               <p className="text-xs font-semibold text-slate-500">Popular Cities</p>
-              <h3 className="font-display text-2xl font-bold text-slate-900">{cities.length || 8}</h3>
+              <h3 className="font-display text-2xl font-bold text-slate-900">{cities.length}</h3>
             </div>
           </div>
           <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -156,18 +161,18 @@ export default function Dashboard() {
         <div className="card p-6 border border-slate-200">
           <div className="w-full h-44 min-h-[180px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={180}>
-              <BarChart data={websiteViewData}>
+              <BarChart data={tripStatusData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#64748B' }} />
+                <XAxis dataKey="status" tick={{ fontSize: 10, fill: '#64748B' }} />
                 <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
                 <Tooltip />
-                <Bar dataKey="view" fill="#16A34A" radius={[4, 4, 0, 0]} barSize={10} />
+                <Bar dataKey="count" fill="#16A34A" radius={[4, 4, 0, 0]} barSize={10} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="pt-4 border-t border-slate-100 mt-4">
-            <h4 className="font-display font-bold text-slate-900 text-sm">Website View</h4>
-            <p className="text-xs text-slate-500 mt-0.5">Last Campaign Performance</p>
+            <h4 className="font-display font-bold text-slate-900 text-sm">Trip Status</h4>
+            <p className="text-xs text-slate-500 mt-0.5">Your saved itineraries</p>
           </div>
         </div>
 
@@ -175,18 +180,18 @@ export default function Dashboard() {
         <div className="card p-6 border border-slate-200">
           <div className="w-full h-44 min-h-[180px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={180}>
-              <LineChart data={dailySalesData}>
+              <LineChart data={destinationData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#64748B' }} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748B' }} />
                 <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="sales" stroke="#0284C7" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="popularity" stroke="#0284C7" strokeWidth={3} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
           <div className="pt-4 border-t border-slate-100 mt-4">
-            <h4 className="font-display font-bold text-slate-900 text-sm">Daily Sales</h4>
-            <p className="text-xs text-slate-500 mt-0.5">(+15%) increase in today sales.</p>
+            <h4 className="font-display font-bold text-slate-900 text-sm">Destination Popularity</h4>
+            <p className="text-xs text-slate-500 mt-0.5">Popularity scores from the destination catalog</p>
           </div>
         </div>
 
@@ -194,18 +199,18 @@ export default function Dashboard() {
         <div className="card p-6 border border-slate-200">
           <div className="w-full h-44 min-h-[180px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={180}>
-              <LineChart data={completedTasksData}>
+              <LineChart data={itineraryData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#64748B' }} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748B' }} />
                 <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="tasks" stroke="#16A34A" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="activities" stroke="#16A34A" strokeWidth={3} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
           <div className="pt-4 border-t border-slate-100 mt-4">
-            <h4 className="font-display font-bold text-slate-900 text-sm">Completed Tasks</h4>
-            <p className="text-xs text-slate-500 mt-0.5">just updated</p>
+            <h4 className="font-display font-bold text-slate-900 text-sm">Activities Per Trip</h4>
+            <p className="text-xs text-slate-500 mt-0.5">Activities already added to your itineraries</p>
           </div>
         </div>
 

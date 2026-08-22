@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Search, Bell, Settings, Menu, User, LogOut } from 'lucide-react'
+import { Menu, User, LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 export default function Navbar({ title, subtitle, onOpenMobileSidebar }) {
@@ -35,25 +35,6 @@ export default function Navbar({ title, subtitle, onOpenMobileSidebar }) {
 
       {/* Right: Search, Actions & Profile Link */}
       <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-        {/* Search Bar (Matching Screenshot Header) */}
-        <div className="relative w-full sm:w-48">
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full pl-3 pr-8 py-1.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900"
-          />
-        </div>
-
-        {/* Notifications & Settings icons */}
-        <button className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 relative" title="Notifications">
-          <Bell className="w-4 h-4" />
-          <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5" />
-        </button>
-
-        <button className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50" title="Settings">
-          <Settings className="w-4 h-4" />
-        </button>
-
         {/* User Auth Link / Logout */}
         {user ? (
           <div className="flex items-center gap-2">
